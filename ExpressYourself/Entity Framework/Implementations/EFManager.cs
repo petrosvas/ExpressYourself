@@ -3,16 +3,20 @@ using ExpressYourself.Entity_Framework.Interfaces;
 using ExpressYourself.Entity_Framework.Types;
 using ExpressYourself.Extensions;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Data.SqlClient;
 
 namespace ExpressYourself.Entity_Framework.Implementations
 {
     public class EFManager : IEFManager
     {
         private readonly AppDbContext _appDbContext;
+        private IConfiguration _configuration;
 
-        public EFManager(AppDbContext appDbContext)
+        public EFManager(AppDbContext appDbContext, IConfiguration configuration)
         {
             _appDbContext = appDbContext;
+            _configuration = configuration;
         }
 
         public async Task<Countries> GetIpDetails(string IP)
@@ -55,7 +59,25 @@ namespace ExpressYourself.Entity_Framework.Implementations
         {
             string query = "SELECT [Countries].Name AS CountryName, COUNT([IPAddresses].CountryId) AS AddressesCount, MAX([IPAddresses].UpdatedAt) AS LastAddressUpdated FROM [Countries], [IPAddresses] WHERE [Countries].Id = [IPAddresses].CountryId GROUP BY [Countries].Name";
 
-            return await _appDbContext.SQLReport.FromSqlRaw(query).ToListAsync();
+            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                sqlConnection.Open();
+                SqlCommand cmd = new SqlCommand(query, sqlConnection);
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    List<SQLReport> list = new List<SQLReport>();
+                    while (reader.Read())
+                    {
+                        list.Add(new SQLReport
+                        {
+                            AddressesCount = (int)reader["AddressesCount"],
+                            LastAddressUpdated = (DateTime)reader["LastAddressUpdated"],
+                            CountryName = (string)reader["CountryName"]
+                        });
+                    }
+                    return list;
+                }
+            }
         }
 
         public async Task<List<IPToUpdate>> GetIPs(int rowsOffset)
@@ -93,9 +115,9 @@ namespace ExpressYourself.Entity_Framework.Implementations
                 });
                 await _appDbContext.SaveChangesAsync();
             }
-            var newId = await _appDbContext.Countries.FirstAsync(country => country.Name == IP2CArray.Name());
+            var newCountry = await _appDbContext.Countries.FirstAsync(country => country.Name == IP2CArray.Name());
             var ipAddress = await _appDbContext.IPAddresses.FirstAsync(ipAddress => ipAddress.IP == row.IP);
-            ipAddress.CountryId = newId.Id;
+            ipAddress.CountryId = newCountry.Id;
             ipAddress.UpdatedAt = DateTime.Now;
 
             await _appDbContext.SaveChangesAsync();

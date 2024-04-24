@@ -1,4 +1,3 @@
-using ExpressYourself.Adapters;
 using ExpressYourself.Entity_Framework.DBContext;
 using ExpressYourself.Entity_Framework.Implementations;
 using ExpressYourself.Entity_Framework.Interfaces;
@@ -11,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder();
 
 builder.Services.AddDbContext<AppDbContext>(Options => Options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.Configure<Settings>(builder.Configuration.GetSection("Settings"));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -19,8 +17,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IExpressYourselfService, ExpressYourselfService>();
 builder.Services.AddSingleton<ICachingManager, CachingManager>();
 builder.Services.Decorate<ICachingManager, CachingManagerDecorator>();
-builder.Services.AddSingleton<IDBManager, DBManager>();
-builder.Services.AddSingleton<IDBAdapter, DBAdapter>();
 builder.Services.AddScoped<IEFManager, EFManager>();
 builder.Services.AddScoped<IEFManagerAdapter, EFManagerAdapter>();
 builder.Services.AddSingleton<IHTTPManager, HTTPManager>();

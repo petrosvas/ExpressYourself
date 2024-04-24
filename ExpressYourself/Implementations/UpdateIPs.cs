@@ -9,13 +9,11 @@ namespace ExpressYourself.Implementations
     {
         private readonly TimeSpan _timespan = TimeSpan.FromHours(1);
         private ILogger<UpdateIPs> _logger;
-        private readonly Settings _settings;
         private readonly IServiceProvider _serviceProvider;
 
-        public UpdateIPs(ILogger<UpdateIPs> logger, IOptions<Settings> settings, IServiceProvider serviceProvider)
+        public UpdateIPs(ILogger<UpdateIPs> logger, IServiceProvider serviceProvider)
         {
             _logger = logger;
-            _settings = settings.Value;
             _serviceProvider = serviceProvider;
         }
 
@@ -27,12 +25,9 @@ namespace ExpressYourself.Implementations
                 {
                     var service = scope.ServiceProvider.GetRequiredService<IExpressYourselfService>();
 
-
-                    _logger.LogInformation($"Starting Updating IPs in Background Task. Using Entity framework: {_settings.UseEntityFramework}");
-
                     try
                     {
-                        var update = _settings.UseEntityFramework ? await service.UpdateIPsEntityFramework() : await service.UpdateIPs();
+                        var update = await service.UpdateIPsEntityFramework();
                         _logger.LogInformation(update.ToString());
                         _logger.LogInformation("Update IPs Background Task Completed!");
                     }

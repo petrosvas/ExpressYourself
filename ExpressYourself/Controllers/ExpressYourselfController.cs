@@ -57,18 +57,6 @@ namespace ExpressYourself.Controllers
             }
         }
 
-        [HttpGet("GetIPDetails")]
-        public async Task<Response<CountryInfo>> GetIPDetails(string IP)
-        {
-            return await RequestHandlerAsync(async (input) => await _expressYourselfService.GetIPDetails(IP), IP);
-        }
-
-        [HttpGet("GetSqlReport")]
-        public async Task<Response<Sql_Report>> GetSqlReport()
-        {
-            return await RequestHandlerAsync(_expressYourselfService.GetSqlReport);
-        }
-
         [HttpGet("GetIPDetailsEntityFramework")]
         public async Task<Response<CountryInfo>> GetIPDetailsEntityFramework(string IP)
         {

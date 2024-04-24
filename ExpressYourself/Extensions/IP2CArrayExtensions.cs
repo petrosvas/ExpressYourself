@@ -2,11 +2,6 @@
 {
     public static partial class Extensions
     {
-        public static string Code(this string[] IP2CArray)
-        {
-            return IP2CArray[0];
-        }
-
         public static string TwoLetterCode(this string[] IP2CArray)
         {
             return IP2CArray[1];

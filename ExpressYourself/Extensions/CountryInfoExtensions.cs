@@ -13,15 +13,5 @@ namespace ExpressYourself.Extensions
                 TwoLetterCode = array.TwoLetterCode()
             };
         }
-
-        public static CountryInfo ToCountryInfo(this Sql_Countries sql_Countries)
-        {
-            return new CountryInfo
-            {
-                CountryName = sql_Countries.Name,
-                ThreeLetterCode = sql_Countries.ThreeLetterCode,
-                TwoLetterCode = sql_Countries.TwoLetterCode
-            };
-        }
     }
 }
