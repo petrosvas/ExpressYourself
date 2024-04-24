@@ -1,4 +1,3 @@
-using ExpressYourself.Adapters;
 using ExpressYourself.Entity_Framework.DBContext;
 using ExpressYourself.Entity_Framework.Implementations;
 using ExpressYourself.Entity_Framework.Interfaces;
@@ -28,67 +27,20 @@ namespace UnitTests
         [SetUp]
         public void Setup()
         {
+            var configuration = new ConfigurationBuilder().AddJsonFile($"appsettings.json", optional: false).Build();
             var services = new ServiceCollection();
             services.AddDbContext<AppDbContext>(Options => Options.UseSqlServer(WebApplication.CreateBuilder().Configuration.GetConnectionString("DefaultConnection")));
             services.AddScoped<IExpressYourselfService, ExpressYourselfService>();
             services.AddSingleton<ICachingManager, CachingManager>();
             services.Decorate<ICachingManager, CachingManagerDecorator>();
-            services.AddSingleton<IDBManager, DBManager>();
-            services.AddSingleton<IDBAdapter, DBAdapter>();
             services.AddScoped<IEFManager, EFManager>();
             services.AddScoped<IEFManagerAdapter, EFManagerAdapter>();
             services.AddSingleton<IHTTPManager, HTTPManager>();
             services.Decorate<IHTTPManager, HTTPManagerDecorator>();
+            services.AddSingleton<IConfiguration>(configuration);
             services.AddLogging();
             var serviceProvider = services.BuildServiceProvider();
             _expressYourselfService = serviceProvider.GetRequiredService<IExpressYourselfService>();
-        }
-
-        [Test]
-        public async Task GetIPDetails()
-        {
-            Random rnd = new Random();
-            for (int i = 0; i < 150; i++)
-            {
-                byte[] bytes = new byte[4];
-                rnd.NextBytes(bytes);
-                await TestEndpointGetIPDetails(GetIP(bytes));
-            }
-            Assert.Pass();
-        }
-
-        private static string GetIP(byte[] bytes)
-        {
-            return $"{bytes[0]}.{bytes[1]}.{bytes[2]}.{bytes[3]}";
-        }
-
-        private async Task<Response<CountryInfo>> TestEndpointGetIPDetails(string IP)
-        {
-            return await RequestHandlerAsync(async (input) => await _expressYourselfService.GetIPDetails(IP), IP);
-        }
-
-        [Test]
-        public async Task GetSqlReport()
-        {
-            await TestEndpointGetSqlReport();
-            Assert.Pass();
-        }
-
-        private async Task<Response<Sql_Report>> TestEndpointGetSqlReport()
-        {
-            return await RequestHandlerAsync<object?, Sql_Report>(async (input) => await _expressYourselfService.GetSqlReport(), null);
-        }
-
-        [Test]
-        public async Task UpdateIPs()
-        {
-            await TestEndpointUpdateIPs();
-            Assert.Pass();
-        }
-
-        private async Task<Response<string>> TestEndpointUpdateIPs()
-        {
-            return await RequestHandlerAsync<object?, string>(async (input) => await _expressYourselfService.UpdateIPs(), null);
         }
 
         [Test]
@@ -99,9 +51,14 @@ namespace UnitTests
             {
                 byte[] bytes = new byte[4];
                 rnd.NextBytes(bytes);
-                await TestEndpointGetIPDetails(GetIP(bytes));
+                await TestEndpointGetIPDetailsEntityFramework(GetIP(bytes));
             }
             Assert.Pass();
+        }
+
+        private static string GetIP(byte[] bytes)
+        {
+            return $"{bytes[0]}.{bytes[1]}.{bytes[2]}.{bytes[3]}";
         }
 
         private async Task<Response<CountryInfo>> TestEndpointGetIPDetailsEntityFramework(string IP)
